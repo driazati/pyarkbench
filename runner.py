@@ -93,10 +93,22 @@ YES = YES.encode('utf-8')
 # run_command(['pip', 'uninstall', 'torch'], input=YES, shell=True)
 # run_command(['pip', 'uninstall', 'torch'], input=YES, shell=True)
 
-run_command(['python', 'test.py'])
+out_dir = sys.argv[1]
+run_command(['python', 'test.py', out_dir])
 
 files = glob.glob(os.getcwd() + '/*.csv')
-out_dir = sys.argv[1]
+
+# Append each file to its corresponding file in out_dir
+for the_file in files:
+    out_file = os.path.join(out_dir, the_file)
+    out = open(out_file, 'a+')
+    result_line = open(the_file, 'r').read()
+    print("writing line", result_line)
+    out.write(result_line)
+    os.remove(the_file)
+
 print(out_dir)
 print(files)
+
+
 

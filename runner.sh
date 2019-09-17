@@ -24,4 +24,3 @@ cd $OUT_DIR
 git add .
 git c -m"Update benchmarks"
 git push
-

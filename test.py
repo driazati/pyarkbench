@@ -23,6 +23,8 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 logging.root.setLevel(logging.DEBUG)
 
+out_dir = None
+
 class Timer(object):
     def __enter__(self):
         self.start = time.perf_counter_ns()
@@ -38,17 +40,18 @@ class Benchmark(object):
         return type(self).__name__.lower()
 
     def output_filename(self):
-        return "{}.csv".format(self.name())
+        csv_name = "{}.csv".format(self.name())
+        return os.path.join(out_dir, csv_name)
 
     def run(self) -> Dict[str, Any]:
-        num = 2
+        runs = 3
 
-        logging.info("Benchmarking {name}, best of {num} runs".format(name=self.name(), num=num))
+        logging.info("Benchmarking {name}, best of {runs} runs".format(name=self.name(), runs=runs))
 
         # Gather the results
         field_names = None
         results = []
-        for _ in range(num):
+        for _ in range(runs):
             result = self.benchmark()
             if field_names is None:
                 field_names = result.keys()
@@ -74,6 +77,7 @@ class Benchmark(object):
     def save_results(self, field_names, results):
         # Open the file, check if the headers are present. If not, add them.
         # Then re-open the file, add the relevant data line
+        logging.info("Saving results for {name}".format(name=self.name()))
         add_headers = False
         if not os.path.exists(self.output_filename()):
             add_headers = True
@@ -118,11 +122,8 @@ class Resnet50(Benchmark):
         }
 
 
-def main():
-    for i in range(20):
-        Resnet50().run()
-
 if __name__ == '__main__':
     if sys.version_info < (3, 7):
         raise RuntimeError("Python 3.7 or greater required")
-    main()
+    out_dir = sys.argv[1]
+    Resnet50().run()
