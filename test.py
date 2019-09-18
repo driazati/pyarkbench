@@ -75,5 +75,5 @@ if __name__ == '__main__':
     Benchmark.commit_pr = args.pr
     Benchmark.num_runs = int(args.runs)
 
-    Basic().run()
-    # Resnet50().run()
+    # Basic().run()
+    Resnet50().run()
