@@ -3,12 +3,8 @@
 # 3. Push result files (all files ending in ".csv") to the site repo
 import subprocess
 from subprocess import PIPE
-import sys
-import glob
-import os
 import textwrap
 import argparse
-import pty
 
 
 class col:
@@ -139,5 +135,3 @@ run_shell_command([PYTHON, 'test.py', args.out])
 run_shell_command(['git', 'add', '*.csv'], cwd=args.out)
 run_shell_command(['git', 'c', '-m"Update benchmarks"'], cwd=args.out)
 run_shell_command(['git', 'push'], cwd=args.out)
-
-
