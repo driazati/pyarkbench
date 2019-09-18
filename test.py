@@ -1,21 +1,23 @@
-import functools
-
-import torch
-import torch.nn as nn
 
 from contextlib import contextmanager
 from typing import List, Optional
 from collections import OrderedDict
+from typing import List, Any, Dict
 
 import time
-import torchvision
+import functools
 import datetime
 import math
 import sys
 import os
 import logging
 
-from typing import List, Any, Dict
+
+import torch
+import torch.nn as nn
+# import torchvision
+import resnet
+
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -91,8 +93,8 @@ class Benchmark(object):
         results = map(lambda x: str(x), results)
         with open(self.output_filename(), 'a+') as f:
             if add_headers:
-                f.write(", ".join(field_names) + "\n")
-            f.write(", ".join(results) + "\n")
+                f.write(",".join(field_names) + "\n")
+            f.write(",".join(results) + "\n")
 
     def benchmark(self):
         raise NotImplementedError()
@@ -100,19 +102,19 @@ class Benchmark(object):
 
 class Resnet50(Benchmark):
     def benchmark(self) -> Dict[str, Any]:
-        eager_resnet = torchvision.models.resnet50()
+        eager_resnet = resnet.resnet50(pretrained=False)
         sample_inputs = torch.randn(1, 3, 224, 224)
 
         with Timer() as eager_time:
-            # eager_resnet(sample_inputs)
+            eager_resnet(sample_inputs)
             pass
 
         with Timer() as compilation_time:
-            # script_resnet = torch.jit.script(eager_resnet)
+            script_resnet = torch.jit.script(eager_resnet)
             pass
 
         with Timer() as script_exec_time:
-            # script_resnet(sample_inputs)
+            script_resnet(sample_inputs)
             pass
 
         return {

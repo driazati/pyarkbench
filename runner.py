@@ -2,10 +2,14 @@
 # 2. Run the benchmark scripts (each should output to its own file)
 # 3. Push result files (all files ending in ".csv") to the site repo
 import subprocess
+from subprocess import PIPE
 import sys
 import glob
 import os
 import textwrap
+import argparse
+import pty
+
 
 class col:
     HEADER = "\033[95m"
@@ -31,7 +35,7 @@ def color(color, text):
     return col.BOLD + color + str(text) + col.RESET
 
 
-def run_command(command, cwd=".", silence_output=False, raise_on_fail=True, input=None, note="", **kwargs):
+def run_shell_command(command, cwd=None, silence_output=False, raise_on_fail=True, input=None, note=""):
     note = "{}{}{}".format(col.BLUE, note, col.RESET)
     command_str = " ".join(command)
     log(color(col.YELLOW, command_str), note)
@@ -42,21 +46,22 @@ def run_command(command, cwd=".", silence_output=False, raise_on_fail=True, inpu
         encoding = 'utf-8'
         call_input = input.decode(encoding)
 
-    if kwargs.get('shell', False):
-        command = " ".join(command)
-        kwargs['executable'] = '/bin/fish'
+    command = " ".join(command) + "\n"
 
-    if config['quiet']:
-        ret = 0
-        msg = ''
-        try:
-            subprocess.check_output(command, stderr=subprocess.PIPE, cwd=cwd, **kwargs)
-        except subprocess.CalledProcessError as err:
-            ret = err.returncode
-            msg = err.stderr.decode(sys.getfilesystemencoding())
-    else:
-        result = subprocess.run(command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=call_input, encoding=encoding, **kwargs)
-        msg = "(process returned {})".format(result.returncode)
+    kwargs = {
+        "stdout": PIPE,
+        "stderr": PIPE,
+        # "encoding": encoding,
+        "shell": True
+    }
+
+    if input is not None:
+        kwargs['input'] = input
+    if cwd is not None:
+        kwargs['cwd'] = cwd
+
+    result = subprocess.run(command, **kwargs)
+    msg = "(process returned {})".format(result.returncode)
 
     def get_output(stream):
         if isinstance(stream, str):
@@ -81,34 +86,58 @@ def run_command(command, cwd=".", silence_output=False, raise_on_fail=True, inpu
     return get_output(result.stdout)
 
 
-YES = 'y\n' * 10
-YES = YES.encode('utf-8')
+parser = argparse.ArgumentParser(description="Run TorchScript benchmarks")
+parser.add_argument("--skip-checkout", help="Don't remove PyTorch/Torchvision", action='store_true', required=False)
+parser.add_argument("--out", help="Destination to write CSVs to", required=True)
+parser.add_argument("--hash", help="PyTorch hash to use", required=False)
 
-# Use the "benchmark" conda environment
-# run_command(['conda', 'activate', 'benchmark'], input=YES, shell=True)
+args = parser.parse_args()
 
-# # Cleanup environment
-# run_command(['pip', 'uninstall', 'torchvision'], input=YES, shell=True)
-# run_command(['pip', 'uninstall', 'numpy'], input=YES, shell=True)
-# run_command(['pip', 'uninstall', 'torch'], input=YES, shell=True)
-# run_command(['pip', 'uninstall', 'torch'], input=YES, shell=True)
 
-out_dir = sys.argv[1]
-run_command(['python', 'test.py', out_dir])
+PIP = 'pip'
+PYTHON = 'python'
 
-files = glob.glob(os.getcwd() + '/*.csv')
+run_shell_command(['conda', 'info'], note='(are you on the right conda environment?)')
 
-# Append each file to its corresponding file in out_dir
-for the_file in files:
-    out_file = os.path.join(out_dir, the_file)
-    out = open(out_file, 'a+')
-    result_line = open(the_file, 'r').read()
-    print("writing line", result_line)
-    out.write(result_line)
-    os.remove(the_file)
+def checkout_and_build_pytorch(hash):
+    run_shell_command(['./builder.sh'])
 
-print(out_dir)
-print(files)
+if not args.skip_checkout:
+    YES = 'y\n' * 10
+    YES = YES.encode('utf-8')
 
+    # Cleanup environment
+    run_shell_command([PIP, 'uninstall', 'torchvision'], input=YES, note='(use a clean environment for running tests)')
+    run_shell_command([PIP, 'uninstall', 'numpy'], input=YES)
+    run_shell_command([PIP, 'uninstall', 'torch'], input=YES)
+    run_shell_command([PIP, 'uninstall', 'torch'], input=YES)
+
+    try:
+        run_shell_command([PYTHON, '-c', '"import torch"'], note='(check that torch was uninstalled)')
+        # print("ran")
+        failed = False
+    except RuntimeError as e:
+        failed = True
+
+    if not failed:
+        raise RuntimeError("Setup went wrong, torch was not uninstalled")
+
+
+    # Build PyTorch
+    # TODO: checkout, build
+    if args.hash:
+        # Build pytorch
+        run_shell_command(['./builder.sh', args.hash], note='(building pytorch)')
+    else:
+        # Using nightly build
+        install = [PIP, 'install', '--pre', 'torch', 'torchvision', '-f', 'https://download.pytorch.org/whl/nightly/cu92/torch_nightly.html']
+        run_shell_command(install, note='(no hash provided, using nightly build)')
+
+run_shell_command([PYTHON, 'test.py', args.out])
+
+
+run_shell_command(['git', 'add', '*.csv'], cwd=args.out)
+run_shell_command(['git', 'c', '-m"Update benchmarks"'], cwd=args.out)
+run_shell_command(['git', 'push'], cwd=args.out)
 
 
