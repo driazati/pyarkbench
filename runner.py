@@ -98,19 +98,22 @@ run_shell_command(['conda', 'info'], note='(are you on the right conda environme
 def checkout_and_build_pytorch(hash):
     run_shell_command(['./builder.sh'])
 
+# These are only set if a specific hash is provided and a PR can be found in the
+# commit message
+time = None
+pr = None
+
 if not args.skip_checkout:
     YES = 'y\n' * 10
     YES = YES.encode('utf-8')
 
     # Cleanup environment
     run_shell_command([PIP, 'uninstall', 'torchvision'], input=YES, note='(use a clean environment for running tests)')
-    run_shell_command([PIP, 'uninstall', 'numpy'], input=YES)
     run_shell_command([PIP, 'uninstall', 'torch'], input=YES)
     run_shell_command([PIP, 'uninstall', 'torch'], input=YES)
 
     try:
         run_shell_command([PYTHON, '-c', '"import torch"'], note='(check that torch was uninstalled)')
-        # print("ran")
         failed = False
     except RuntimeError as e:
         failed = True
@@ -118,18 +121,32 @@ if not args.skip_checkout:
     if not failed:
         raise RuntimeError("Setup went wrong, torch was not uninstalled")
 
-
     # Build PyTorch
     # TODO: checkout, build
     if args.hash:
         # Build pytorch
         run_shell_command(['./builder.sh', args.hash], note='(building pytorch)')
+        commit_info = run_shell_command(['git', 'show', args.hash, '--format="%aI%n%b"', '--no-patch'], silence_output=True, cwd='pytorch', note='(getting commit PR and timestamp)')
+        commit_info = commit_info.split('\n')
+        time = commit_info[0]
+        for line in commit_info[1:]:
+            if 'Pull Request resolved: ' in line:
+                pr = line.split('/pull/')[1]
+                break
     else:
         # Using nightly build
         install = [PIP, 'install', '--pre', 'torch', 'torchvision', '-f', 'https://download.pytorch.org/whl/nightly/cu92/torch_nightly.html']
         run_shell_command(install, note='(no hash provided, using nightly build)')
 
-run_shell_command([PYTHON, 'test.py', args.out])
+command = [PYTHON, 'test.py', '--out', args.out]
+if args.hash:
+    assert time is not None
+    command.append('--time')
+    command.append('"{}"'.format(time))
+    if pr is not None:
+        command.append('--pr')
+        command.append(pr)
+run_shell_command(command)
 
 
 run_shell_command(['git', 'add', '*.csv'], cwd=args.out)
