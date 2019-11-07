@@ -68,12 +68,6 @@ args = parser.parse_args()
 if __name__ == '__main__':
     if sys.version_info < (3, 7):
         raise RuntimeError("Python 3.7 or greater required")
-    Benchmark.out_dir = args.out
-    if args.time:
-        commit_time = datetime.datetime.strptime(args.time, "%Y-%m-%dT%H:%M:%S%z")
-        Benchmark.commit_time = commit_time.strftime("%Y-%m-%d %H:%M:%S")
-    Benchmark.commit_pr = args.pr
-    Benchmark.num_runs = int(args.runs)
 
-    # Basic().run()
-    Resnet50().run()
+    Basic().run()
+    # Resnet50().run()

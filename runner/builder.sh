@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Usage:
+#   ./builder.sh <git hash of commit>
+
 # Checkout the relevant hash without cloning the whole repo
 mkdir -p pytorch
 cd pytorch
@@ -15,4 +18,15 @@ git submodule update --init --recursive
 
 pip install -r requirements.txt
 
-REL_WITH_DEB_INFO=1 USE_DISTRIBUTED=0 USE_MKLDNN=0 USE_CUDA=0 BUILD_TEST=0 USE_FBGEMM=0 USE_NNPACK=0 USE_QNNPACK=0 CC=clang CXX=clang++ python setup.py develop
+# Run the build
+REL_WITH_DEB_INFO=1 \
+USE_DISTRIBUTED=0 \
+USE_MKLDNN=0 \
+USE_CUDA=0 \
+BUILD_TEST=0 \
+USE_FBGEMM=0 \
+USE_NNPACK=0 \
+USE_QNNPACK=0 \
+CC=gcc \
+CXX=g++ \
+python setup.py develop
