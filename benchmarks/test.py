@@ -27,6 +27,7 @@ class Resnet50(Benchmark):
         eager_resnet = resnet.resnet50(pretrained=False)
         sample_inputs = torch.randn(1, 3, 224, 224)
 
+
         with Timer() as eager_time:
             eager_resnet(sample_inputs)
 
@@ -35,12 +36,11 @@ class Resnet50(Benchmark):
 
         with Timer() as script_exec_time:
             script_resnet(sample_inputs)
+        # for _ in range(10):
+        #     script_resnet(sample_inputs)
 
-        for _ in range(10):
-            script_resnet(sample_inputs)
-
-        with Timer() as tenth_script_exec_time:
-            script_resnet(sample_inputs)
+        # with Timer() as tenth_script_exec_time:
+        #     script_resnet(sample_inputs)
 
         # with Timer() as script_exec_time:
         #     script_resnet.to('cuda')(sample_inputs)
@@ -49,12 +49,12 @@ class Resnet50(Benchmark):
             "Eager Runtime (ms)": eager_time.ms_duration,
             "Compilation Time (ms)": compilation_time.ms_duration,
             "Script Runtime (ms)": script_exec_time.ms_duration,
-            "10th Script Runtime (ms)": tenth_script_exec_time.ms_duration,
+            # "10th Script Runtime (ms)": tenth_script_exec_time.ms_duration,
         }
 
 if __name__ == '__main__':
     if sys.version_info < (3, 7):
         raise RuntimeError("Python 3.7 or greater required")
 
-    Basic().run()
-    # Resnet50().run()
+    # Basic().run()
+    Resnet50().run()

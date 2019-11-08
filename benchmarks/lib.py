@@ -152,27 +152,13 @@ class Benchmark(object):
         entry = {
             "commit": {
                 "pr": commit.pr,
+                "hash": commit.hash,
                 "time": commit.time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             },
             "runs": [results]
         }
-        print(data)
         data.insert(spot, entry)
 
-
-
-
-
-        # if commit.hash in data:
-        #     data[commit.hash]["runs"].append(results)
-        # else:
-        #     data[commit.hash] = {
-        #         "commit": {
-        #             "pr": commit.pr,
-        #             "time": str(commit.time),
-        #         },
-        #         "runs": [results]
-        #     }
 
         with open(self.output_filename(), 'w') as out:
             json.dump(data, out, indent=2)
