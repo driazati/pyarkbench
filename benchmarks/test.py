@@ -56,5 +56,5 @@ if __name__ == '__main__':
     if sys.version_info < (3, 7):
         raise RuntimeError("Python 3.7 or greater required")
 
-    # Basic().run()
-    Resnet50().run()
+    Basic().run()
+    # Resnet50().run()

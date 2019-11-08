@@ -124,12 +124,15 @@ class Benchmark(object):
             entry_time = d["commit"]["time"]
             entry_time = datetime.datetime.strptime(entry_time, "%Y-%m-%dT%H:%M:%S%z")
 
+            if d["commit"]["hash"] == commit.hash:
+                return index, False
+
             if commit.time < entry_time:
                 break
 
             index += 1
 
-        return index
+        return index, True
 
 
     def save_results(self, results, commit):
@@ -141,23 +144,27 @@ class Benchmark(object):
 
         data = []
         spot = 0
+        make_new_entry = True
         if os.path.exists(self.output_filename()):
             with open(self.output_filename(), 'r') as in_file:
                 try:
                     data = json.load(in_file)
-                    spot = self.find_spot(data, commit)
+                    spot, make_new_entry = self.find_spot(data, commit)
                 except json.decoder.JSONDecodeError as e:
                     logging.warning("Error decoding JSON, deleting existing content {}".format(str(e)))
 
-        entry = {
-            "commit": {
-                "pr": commit.pr,
-                "hash": commit.hash,
-                "time": commit.time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-            },
-            "runs": [results]
-        }
-        data.insert(spot, entry)
+        if make_new_entry:
+            entry = {
+                "commit": {
+                    "pr": commit.pr,
+                    "hash": commit.hash,
+                    "time": commit.time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                },
+                "runs": [results]
+            }
+            data.insert(spot, entry)
+        else:
+            data[spot]["runs"].append(results)
 
 
         with open(self.output_filename(), 'w') as out:
