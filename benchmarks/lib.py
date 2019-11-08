@@ -4,6 +4,7 @@ import datetime
 import torch
 import os
 import argparse
+import json
 
 from typing import Dict, Any
 
@@ -55,6 +56,10 @@ class Commit(object):
         self.pr = pr
         self.hash = hash
 
+    def __repr__(self):
+        parts = [str((key, str(self.__dict__[key]))) for key in self.__dict__]
+        return '({})'.format(", ".join(parts))
+
 
 class Benchmark(object):
     out_dir = None
@@ -65,7 +70,7 @@ class Benchmark(object):
         return type(self).__name__.lower()
 
     def output_filename(self):
-        csv_name = "{}.csv".format(self.name())
+        csv_name = "{}.json".format(self.name())
         return os.path.join(self.out_dir, csv_name)
 
     def init(self):
@@ -75,7 +80,7 @@ class Benchmark(object):
         else:
             commit_time = ''
         self.num_runs = int(args.runs)
-        self.commit = (commit_time, args.pr, args.hash)
+        self.commit = Commit(commit_time, args.pr, args.hash)
 
     def run(self) -> Dict[str, Any]:
         self.init()
@@ -85,8 +90,6 @@ class Benchmark(object):
         logging.info("Commit {}".format(self.commit))
         if self.out_dir is None:
             logging.warning("'--out' is not set, printing result to stdout")
-        else:
-            logging.info("Saving results to {out_dir}".format(out_dir=self.out_dir))
 
         # Save the minimum results to the output file
         now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -115,8 +118,21 @@ class Benchmark(object):
         logging.info(
             "Saving results for {name} to {filename}".format(name=self.name(), filename=self.output_filename()))
 
+        data = {}
         if os.path.exists(self.output_filename()):
-            existing_data = json.loads(open(self.output_filename(), 'r'))
+            with open(self.output_filename(), 'r') as in_file:
+                data = json.load(in_file)
+        if commit.hash in data:
+            data[commit.hash]["runs"].append(results)
+        else:
+            data[commit.hash] = {
+                "pr": commit.pr,
+                "time": commit.time,
+                "runs": [results]
+            }
+
+        with open(self.output_filename(), 'w') as out:
+            json.dump(data, out, indent=2)
 
 
     def benchmark(self):
