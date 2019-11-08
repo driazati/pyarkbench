@@ -76,23 +76,22 @@ class Benchmark(object):
     def init(self):
         self.out_dir = args.out
         if args.time:
-            commit_time = datetime.datetime.strptime(args.time, "%Y-%m-%dT%H:%M:%S%z")
+            time = datetime.datetime.strptime(args.time, "%Y-%m-%dT%H:%M:%S%z")
         else:
-            commit_time = ''
-        self.num_runs = int(args.runs)
-        self.commit = Commit(commit_time, args.pr, args.hash)
+            time = ''
+        return Commit(time, args.pr, args.hash)
 
     def run(self) -> Dict[str, Any]:
-        self.init()
-        runs = self.num_runs
+        commit = self.init()
+        runs = int(args.runs)
 
         logging.info("Benchmarking '{name}', best of {runs} runs".format(name=self.name(), runs=runs))
-        logging.info("Commit {}".format(self.commit))
+        logging.info("Commit {}".format(commit))
         if self.out_dir is None:
             logging.warning("'--out' is not set, printing result to stdout")
 
-        # Save the minimum results to the output file
-        now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S%z")
 
         # Gather the results
         field_names = None
@@ -105,31 +104,75 @@ class Benchmark(object):
             for key in result:
                 results[key].append(result[key])
 
+        # Add the time the test was run to the results
+        results["benchmark_run_at"] = str(now)
+
+
         if self.out_dir is None:
             # TODO: calculate statistics
             import pprint
             pprint.pprint(results)
         else:
-            self.save_results(results, self.commit)
+            self.save_results(results, commit)
+
+    def find_spot(self, data, commit):
+        # Find the index in data where commit should be inserted, assuming data
+        # is ordered by commit time
+        # TODO: Make this a binary search
+        index = 0
+        for d in data:
+            entry_time = d["commit"]["time"]
+            entry_time = datetime.datetime.strptime(entry_time, "%Y-%m-%dT%H:%M:%S%z")
+
+            if commit.time < entry_time:
+                break
+
+            index += 1
+
+        return index
+
 
     def save_results(self, results, commit):
         # Open the file, check if the headers are present. If not, add them.
         # Then re-open the file, add the relevant data line
+        assert commit is not None
         logging.info(
             "Saving results for {name} to {filename}".format(name=self.name(), filename=self.output_filename()))
 
-        data = {}
+        data = []
+        spot = 0
         if os.path.exists(self.output_filename()):
             with open(self.output_filename(), 'r') as in_file:
-                data = json.load(in_file)
-        if commit.hash in data:
-            data[commit.hash]["runs"].append(results)
-        else:
-            data[commit.hash] = {
+                try:
+                    data = json.load(in_file)
+                    spot = self.find_spot(data, commit)
+                except json.decoder.JSONDecodeError as e:
+                    logging.warning("Error decoding JSON, deleting existing content {}".format(str(e)))
+
+        entry = {
+            "commit": {
                 "pr": commit.pr,
-                "time": commit.time,
-                "runs": [results]
-            }
+                "time": commit.time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            },
+            "runs": [results]
+        }
+        print(data)
+        data.insert(spot, entry)
+
+
+
+
+
+        # if commit.hash in data:
+        #     data[commit.hash]["runs"].append(results)
+        # else:
+        #     data[commit.hash] = {
+        #         "commit": {
+        #             "pr": commit.pr,
+        #             "time": str(commit.time),
+        #         },
+        #         "runs": [results]
+        #     }
 
         with open(self.output_filename(), 'w') as out:
             json.dump(data, out, indent=2)
