@@ -5,6 +5,7 @@ import torch
 import os
 import argparse
 import json
+import gc
 
 from typing import Dict, Any
 
@@ -81,9 +82,20 @@ class Benchmark(object):
             time = ''
         return Commit(time, args.pr, args.hash)
 
+    def clear_cache(self):
+        mb_of_data = 3
+        output = [i for i in range(mb_of_data * 1024 * 1024)]
+        return list(map(lambda x: x + 1, output))
+
+    def cleanup(self):
+        self.clear_cache()
+        gc.collect()
+        time.sleep(1)
+
     def run(self) -> Dict[str, Any]:
         commit = self.init()
         runs = int(args.runs)
+        warmup_runs = 1
 
         logging.info("Benchmarking '{name}', best of {runs} runs".format(name=self.name(), runs=runs))
         logging.info("Commit {}".format(commit))
@@ -93,9 +105,13 @@ class Benchmark(object):
 
         now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S%z")
 
+        for i in range(warmup_runs):
+            self.benchmark()
+
         # Gather the results
         field_names = None
         results = {}
+        self.cleanup()
         for i in range(runs):
             result = self.benchmark()
             if len(results) == 0:
@@ -103,6 +119,7 @@ class Benchmark(object):
 
             for key in result:
                 results[key].append(result[key])
+        self.cleanup()
 
         # Add the time the test was run to the results
         results["benchmark_run_at"] = str(now)
