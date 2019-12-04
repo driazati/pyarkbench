@@ -6,9 +6,6 @@
 # Kill chef for 16 hours
 # sudo stop_chef_temporarily -t 16 -r "benchmarking"
 
-# These are some commits to perf test
-# example: python runn2er.py --out driazati.github.io/torchscript --hash a6fb6e1fb39f1f4a509dec04e4719ff9e2d04c83
-
 python ./runner/main.py --out driazati.github.io/torchscript --hash ea3697db69e6ccb8235c3d20384d9a5b12463813
 python ./runner/main.py --out driazati.github.io/torchscript --hash 53785771a7aa557f6b397762f7e3b3b9f263f4fc
 python ./runner/main.py --out driazati.github.io/torchscript --hash 25f4ba7c1b72e2ce49322e841883de172264b768

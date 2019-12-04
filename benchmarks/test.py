@@ -36,14 +36,11 @@ class Resnet50(Benchmark):
         with Timer() as script_exec_time:
             script_resnet(sample_inputs)
 
-        for _ in range(4):
+        for _ in range(10):
             script_resnet(sample_inputs)
 
         with Timer() as tenth_script_exec_time:
             script_resnet(sample_inputs)
-
-        # with Timer() as script_exec_time:
-        #     script_resnet.to('cuda')(sample_inputs)
 
         return {
             "Eager Runtime (ms)": eager_time.ms_duration,
