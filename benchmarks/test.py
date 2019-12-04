@@ -36,6 +36,9 @@ class Resnet50(Benchmark):
         with Timer() as script_exec_time:
             script_resnet(sample_inputs)
 
+        for _ in range(4):
+            script_resnet(sample_inputs)
+
         with Timer() as tenth_script_exec_time:
             script_resnet(sample_inputs)
 
@@ -53,5 +56,5 @@ if __name__ == '__main__':
     if sys.version_info < (3, 7):
         raise RuntimeError("Python 3.7 or greater required")
 
-    Basic().run()
-    # Resnet50().run()
+    # Basic().run()
+    Resnet50().run()
