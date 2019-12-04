@@ -49,7 +49,7 @@ class Resnet50(Benchmark):
             "Eager Runtime (ms)": eager_time.ms_duration,
             "Compilation Time (ms)": compilation_time.ms_duration,
             "Script Runtime (ms)": script_exec_time.ms_duration,
-            # "10th Script Runtime (ms)": tenth_script_exec_time.ms_duration,
+            "10th Script Runtime (ms)": tenth_script_exec_time.ms_duration,
         }
 
 if __name__ == '__main__':

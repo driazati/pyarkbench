@@ -7,10 +7,12 @@ import textwrap
 import argparse
 
 
-from lib import run_shell_command, color, log
+from lib import run_shell_command, color, log, local_file
 
-BUILDER_SCRIPT = './builder.sh'
+BUILDER_SCRIPT = local_file('builder.sh')
+BENCHMARK_TEST = local_file('..', 'benchmarks', 'test.py')
 BENCHMARK_TEST = './benchmarks/test.py'
+# BENCHMARK_TEST = './benchmarks/test.py'
 PIP = 'pip'
 PYTHON = 'python'
 
@@ -56,7 +58,7 @@ def get_current_commit():
             pr = line.split('/pull/')[1]
             break
 
-    return Commit(time, pr, hash)
+    return Commit(time, pr, commit_hash)
 
 
 def build_test_command(commit):
@@ -95,10 +97,10 @@ if not args.skip_checkout:
     run_shell_command([BUILDER_SCRIPT, commit_hash], note='(building pytorch)')
 
     # Get information about the currently checkout out commit
-    time, pr = get_current_commit()
+    commit = get_current_commit()
 
 # Testing only
-commit = Commit('2019-11-07T17:16:50-08:00', '12345', '8f917abed18833ac00577844fe13375ac8fce168')
+# commit = Commit('2019-11-07T17:16:50-08:00', '12345', '8f917abed18833ac00577844fe13375ac8fce168')
 
 
 run_shell_command(build_test_command(commit))
