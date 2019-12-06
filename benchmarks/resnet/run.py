@@ -3,7 +3,7 @@ from typing import Any, Dict
 import torch
 # import torchvision
 import resnet
-from lib import Benchmark, Timer
+from torchscript_benchmarks import Benchmark, Timer
 
 import sys
 import argparse

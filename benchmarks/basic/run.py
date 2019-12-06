@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 import torch
-from lib import Benchmark, Timer
+from torchscript_benchmarks import Benchmark, Timer
 
 import sys
 import argparse

@@ -7,7 +7,7 @@ import textwrap
 import argparse
 
 
-from lib import run_shell_command, color, log, local_file
+from torchscript_benchmarks import run_shell_command, color, log, local_file
 
 BUILDER_SCRIPT = local_file('builder.sh')
 BENCHMARK_TEST = local_file('..', 'benchmarks', 'test.py')
