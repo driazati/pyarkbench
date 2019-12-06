@@ -1,11 +1,6 @@
 from typing import Any, Dict
 
-import torch
-from torchscript_benchmarks import Benchmark, Timer
-
-import sys
-import argparse
-import datetime
+from torchscript_benchmarks import Benchmark, Timer, setup_args
 
 
 class Basic(Benchmark):
@@ -22,4 +17,5 @@ class Basic(Benchmark):
         }
 
 if __name__ == '__main__':
+    setup_args()
     Basic().run()

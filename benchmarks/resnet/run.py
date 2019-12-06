@@ -3,11 +3,7 @@ from typing import Any, Dict
 import torch
 # import torchvision
 import resnet
-from torchscript_benchmarks import Benchmark, Timer
-
-import sys
-import argparse
-import datetime
+from torchscript_benchmarks import Benchmark, Timer, setup_args
 
 
 class Resnet50(Benchmark):
@@ -38,5 +34,5 @@ class Resnet50(Benchmark):
         }
 
 if __name__ == '__main__':
-    # Basic().run()
+    setup_args()
     Resnet50().run()

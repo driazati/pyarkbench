@@ -1,7 +1,6 @@
 import logging
 import time
 import datetime
-import torch
 import os
 import argparse
 import json
@@ -16,14 +15,19 @@ logging.basicConfig(
 logging.root.setLevel(logging.DEBUG)
 
 
-parser = argparse.ArgumentParser(description="Run TorchScript benchmarks")
-parser.add_argument("--out", help="Directory to write CSVs to", required=False)
-parser.add_argument("--time", help="Time of current commit", required=False)
-parser.add_argument("--pr", help="PR of current commit", required=False)
-parser.add_argument("--hash", help="Hash of current commit", required=False)
-parser.add_argument("--runs", help="Number of times to run benchmarks", default=10)
+args = None
 
-args = parser.parse_args()
+def setup_args():
+    global args
+    parser = argparse.ArgumentParser(description="Run TorchScript benchmarks")
+    parser.add_argument("--out", help="Directory to write CSVs to", required=False)
+    parser.add_argument("--time", help="Time of current commit", required=False)
+    parser.add_argument("--pr", help="PR of current commit", required=False)
+    parser.add_argument("--hash", help="Hash of current commit", required=False)
+    parser.add_argument("--runs", help="Number of times to run benchmarks", default=10)
+
+    args = parser.parse_args()
+    return args
 
 
 class Timer(object):
@@ -76,11 +80,19 @@ class Benchmark(object):
 
     def init(self):
         self.out_dir = args.out
+
+
+        if not args.time or not args.hash or not args.pr:
+            logging.info("--time, --hash, or --pr not provided, commit is unknown")
+            return None
+
         if args.time:
             time = datetime.datetime.strptime(args.time, "%Y-%m-%dT%H:%M:%S%z")
         else:
             time = ''
-        return Commit(time, args.pr, args.hash)
+        commit = Commit(time, args.pr, args.hash)
+        logging.info("Commit {}".format(commit))
+        return commit
 
     def clear_cache(self):
         mb_of_data = 3
@@ -98,7 +110,6 @@ class Benchmark(object):
         warmup_runs = 1
 
         logging.info("Benchmarking '{name}', best of {runs} runs".format(name=self.name(), runs=runs))
-        logging.info("Commit {}".format(commit))
         if self.out_dir is None:
             logging.warning("'--out' is not set, printing result to stdout")
 
@@ -136,6 +147,8 @@ class Benchmark(object):
         # Find the index in data where commit should be inserted, assuming data
         # is ordered by commit time
         # TODO: Make this a binary search
+        if commit is None:
+            return 0, True
         index = 0
         for d in data:
             entry_time = d["commit"]["time"]
@@ -155,7 +168,6 @@ class Benchmark(object):
     def save_results(self, results, commit):
         # Open the file, check if the headers are present. If not, add them.
         # Then re-open the file, add the relevant data line
-        assert commit is not None
         logging.info(
             "Saving results for {name} to {filename}".format(name=self.name(), filename=self.output_filename()))
 
@@ -171,14 +183,15 @@ class Benchmark(object):
                     logging.warning("Error decoding JSON, deleting existing content {}".format(str(e)))
 
         if make_new_entry:
-            entry = {
-                "commit": {
+            entry = {}
+            if commit:
+                entry["commit"] = {
                     "pr": commit.pr,
                     "hash": commit.hash,
                     "time": commit.time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                },
-                "runs": [results]
-            }
+                }
+
+            entry["runs"] = [results]
             data.insert(spot, entry)
         else:
             data[spot]["runs"].append(results)

@@ -1,18 +1,13 @@
 # 1. Checkout Pytorch nightly
 # 2. Run the benchmark scripts (each should output to its own file)
 # 3. Push result files (all files ending in ".csv") to the site repo
-import subprocess
-from subprocess import PIPE
-import textwrap
 import argparse
 
 
-from torchscript_benchmarks import run_shell_command, color, log, local_file
+from torchscript_benchmarks import run_shell_command, local_file
 
 BUILDER_SCRIPT = local_file('builder.sh')
 BENCHMARK_TEST = local_file('..', 'benchmarks', 'test.py')
-BENCHMARK_TEST = './benchmarks/test.py'
-# BENCHMARK_TEST = './benchmarks/test.py'
 PIP = 'pip'
 PYTHON = 'python'
 
@@ -62,7 +57,8 @@ def get_current_commit():
 
 
 def build_test_command(commit):
-    command = [PYTHON, BENCHMARK_TEST, '--out', args.out]
+    benchmark = args.benchmark_file
+    command = [PYTHON, benchmark, '--out', args.out]
     if commit is not None:
         command.extend(['--time', '"{}"'.format(commit.time)])
         command.extend(['--pr', '"{}"'.format(commit.pr)])
@@ -72,6 +68,7 @@ def build_test_command(commit):
 
 
 parser = argparse.ArgumentParser(description="Run TorchScript benchmarks")
+parser.add_argument("--benchmark-file", help="Python file containing that will run the benchmark", required=True)
 parser.add_argument("--skip-checkout", help="Don't remove existing PyTorch/Torchvision", action='store_true', required=False)
 parser.add_argument("--skip-conda-check", help="Don't print the current conda environment", action='store_true', required=False)
 parser.add_argument("--out", help="Destination git repo to write JSONs to", required=True)
