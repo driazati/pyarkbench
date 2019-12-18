@@ -137,6 +137,8 @@ if __name__ == "__main__":
 
         # Get information about the currently checkout out commit
         commit = get_current_commit()
+    else:
+        assert args.hash is None, "Cannot --skip-checkout if a hash is set"
 
     for benchmark in args.benchmarks:
         run_shell_command(build_benchmark_command(benchmark, args.out, commit))
