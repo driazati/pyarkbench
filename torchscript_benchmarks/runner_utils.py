@@ -28,11 +28,6 @@ def color(color, text):
     return col.BOLD + color + str(text) + col.RESET
 
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-def local_file(*args):
-    return os.path.join(dir_path, *args)
-
 def run_shell_command(command, cwd=None, silence_output=False, raise_on_fail=True, input=None, note=""):
     note = "{}{}{}".format(col.BLUE, note, col.RESET)
     command_str = " ".join(command)
