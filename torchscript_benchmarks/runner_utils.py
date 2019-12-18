@@ -15,9 +15,8 @@ class col:
     UNDERLINE = "\033[4m"
 
 
-config = {
-    'quiet': False
-}
+config = {'quiet': False}
+
 
 def log(*args, **kwargs):
     if not config['quiet']:
@@ -28,7 +27,12 @@ def color(color, text):
     return col.BOLD + color + str(text) + col.RESET
 
 
-def run_shell_command(command, cwd=None, silence_output=False, raise_on_fail=True, input=None, note=""):
+def run_shell_command(command,
+                      cwd=None,
+                      silence_output=False,
+                      raise_on_fail=True,
+                      input=None,
+                      note=""):
     note = "{}{}{}".format(col.BLUE, note, col.RESET)
     command_str = " ".join(command)
     log(color(col.YELLOW, command_str), note)

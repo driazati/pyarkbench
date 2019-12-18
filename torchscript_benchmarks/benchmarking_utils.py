@@ -8,23 +8,30 @@ import gc
 
 from typing import Dict, Any
 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    level=logging.INFO,
-    datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+                    level=logging.INFO,
+                    datefmt='%Y-%m-%d %H:%M:%S')
 logging.root.setLevel(logging.DEBUG)
 
-
 args = None
+
 
 def setup_args():
     global args
     parser = argparse.ArgumentParser(description="Run TorchScript benchmarks")
-    parser.add_argument("--out", help="Directory to write CSVs to", required=False)
-    parser.add_argument("--time", help="Time of current commit", required=False)
+    parser.add_argument("--out",
+                        help="Directory to write CSVs to",
+                        required=False)
+    parser.add_argument("--time",
+                        help="Time of current commit",
+                        required=False)
     parser.add_argument("--pr", help="PR of current commit", required=False)
-    parser.add_argument("--hash", help="Hash of current commit", required=False)
-    parser.add_argument("--runs", help="Number of times to run benchmarks", default=10)
+    parser.add_argument("--hash",
+                        help="Hash of current commit",
+                        required=False)
+    parser.add_argument("--runs",
+                        help="Number of times to run benchmarks",
+                        default=10)
 
     args = parser.parse_args()
     return args
@@ -81,9 +88,9 @@ class Benchmark(object):
     def init(self):
         self.out_dir = args.out
 
-
         if not args.time or not args.hash or not args.pr:
-            logging.info("--time, --hash, or --pr not provided, commit is unknown")
+            logging.info(
+                "--time, --hash, or --pr not provided, commit is unknown")
             return None
 
         if args.time:
@@ -109,10 +116,10 @@ class Benchmark(object):
         runs = int(args.runs)
         warmup_runs = 1
 
-        logging.info("Benchmarking '{name}', best of {runs} runs".format(name=self.name(), runs=runs))
+        logging.info("Benchmarking '{name}', best of {runs} runs".format(
+            name=self.name(), runs=runs))
         if self.out_dir is None:
             logging.warning("'--out' is not set, printing result to stdout")
-
 
         now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S%z")
 
@@ -135,7 +142,6 @@ class Benchmark(object):
         # Add the time the test was run to the results
         results["benchmark_run_at"] = str(now)
 
-
         if self.out_dir is None:
             # TODO: calculate statistics
             import pprint
@@ -152,7 +158,8 @@ class Benchmark(object):
         index = 0
         for d in data:
             entry_time = d["commit"]["time"]
-            entry_time = datetime.datetime.strptime(entry_time, "%Y-%m-%dT%H:%M:%S%z")
+            entry_time = datetime.datetime.strptime(entry_time,
+                                                    "%Y-%m-%dT%H:%M:%S%z")
 
             if d["commit"]["hash"] == commit.hash:
                 return index, False
@@ -164,12 +171,13 @@ class Benchmark(object):
 
         return index, True
 
-
     def save_results(self, results, commit):
-        # Open the file, check if the headers are present. If not, add them.
-        # Then re-open the file, add the relevant data line
-        logging.info(
-            "Saving results for {name} to {filename}".format(name=self.name(), filename=self.output_filename()))
+        """
+        Save the results gathered from benchmarking and metadata about the commit
+        to a JSON file named after the type of `self`.
+        """
+        logging.info("Saving results for {name} to {filename}".format(
+            name=self.name(), filename=self.output_filename()))
 
         data = []
         spot = 0
@@ -180,7 +188,9 @@ class Benchmark(object):
                     data = json.load(in_file)
                     spot, make_new_entry = self.find_spot(data, commit)
                 except json.decoder.JSONDecodeError as e:
-                    logging.warning("Error decoding JSON, deleting existing content {}".format(str(e)))
+                    logging.warning(
+                        "Error decoding JSON, deleting existing content {}".
+                        format(str(e)))
 
         if make_new_entry:
             entry = {}
@@ -196,10 +206,8 @@ class Benchmark(object):
         else:
             data[spot]["runs"].append(results)
 
-
         with open(self.output_filename(), 'w') as out:
             json.dump(data, out, indent=2)
-
 
     def benchmark(self):
         raise NotImplementedError()
