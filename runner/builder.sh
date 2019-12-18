@@ -22,6 +22,7 @@ pip install -r requirements.txt
 REL_WITH_DEB_INFO=1 \
 USE_DISTRIBUTED=0 \
 USE_MKLDNN=0 \
+BUILD_CAFFE2_OPS=0 \
 USE_CUDA=0 \
 BUILD_TEST=0 \
 USE_FBGEMM=0 \
