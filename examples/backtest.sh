@@ -5,6 +5,9 @@
 # Get every 60th commit (as hash, date), then only test the most recent 50
 # git log --format='"%H", "%aD"' | awk 'NR == 1 || NR % 60 == 0' | head -n 50
 
+# Get those same commits in a runnable format
+# git log --format='run_with_commit %H' | awk 'NR == 1 || NR % 60 == 0' | head -n 50
+
 # Kill chef for 16 hours
 # sudo stop_chef_temporarily -t 16 -r "benchmarking"
 
@@ -15,53 +18,48 @@ export BENCHMARKS='benchmarks/basic/run.py'
 shopt -s expand_aliases  # make aliases work
 alias run_with_commit='python ./runner/main.py --skip-conda-check --benchmarks $BENCHMARKS --out $DESTDIR --hash'
 
-run_with_commit ea3697db69e6ccb8235c3d20384d9a5b12463813
-run_with_commit 53785771a7aa557f6b397762f7e3b3b9f263f4fc
-run_with_commit 25f4ba7c1b72e2ce49322e841883de172264b768
-run_with_commit 29887f813a8224ec415facd8e77c16bfbd10e231
-run_with_commit c2b7b2cbf8d4a7e0c82496147b4ae68d4c6a0216
-run_with_commit 20b73e18053a972c84b6766bc0d13c308d328cd7
-run_with_commit 189b24ebe96b9ab9a45c98a699b0fbf965ca1b90
-run_with_commit 92a512b5832e91f64d9bca98b8a93897460b3cb8
-run_with_commit ed788ec7804cac24db42069f41a7109c65cc57f1
-run_with_commit f111f1b1a77702d632f2d5c9cea750064bc1d82a
-run_with_commit bb119d957e331a1dbca91fbdf00f298088218e5b
-run_with_commit 63675b1969d5437384851e0e543b2fe9785334ce
-run_with_commit a5d356cb39d521c25786c9ef14981f02ca3459be
-run_with_commit 21d11e0b644bcfff747c944849c9418fe42c32d8
-run_with_commit 1e904049cac8a5df5af8e2067711c5addefc35d9
-run_with_commit a844809a2c01d130be14701be51d04684dc595c1
-run_with_commit cbc234bcebe3a155a1cbe7e02282d64c52ffd0d4
-run_with_commit 4230132baf259bf10336b27755a1e0d6ae6927e7
-run_with_commit da6b8a905a2f37b5d927c380f2495628f4f091d9
-run_with_commit 9705d60a2f7dabe0adcc13598b0e5268678f9d00
-run_with_commit c813503f057db361eb44740e7a6932ddf3fb450d
-run_with_commit cbb4c87d434350d380ba8eb8ff2f0c60e17de58e
-run_with_commit ef8bcfe2c7a4842e54520a6d9c783e6be2443e56
-run_with_commit 341262754f5e7247e136504fcd06bf6fcab0dcc9
-run_with_commit f3df6b8ede4057453486964100e6cba284d9fa36
-run_with_commit 31a6ff46c1c6efaf9db24ce2c4b2cd89771380e7
-run_with_commit 646e214706fd940ae36c51cdc8d66789962203ff
-run_with_commit fc249c79245af10eeb564ab0f1d42b025a8e07f4
-run_with_commit 1d4d6b6f0fe590f44b469d1ee49a967b28ccf81a
-run_with_commit 3a18e2e7686d01e4222b5f3fafdbe0b6c9154797
-run_with_commit 8d5c2aa71c6c2bef6304c80ffb1a20ac398e4823
-run_with_commit 03007b3dda7c4b5bc339106bbf0dd9f7a409c7c9
-run_with_commit 3f72bcfcaacadfbbfb40e1cc32fc15fdec26bca5
-run_with_commit 567a1981a701f3682ab3c71b68ec45e965c8f279
-run_with_commit 67035871560b8b943488a9ff5b6aa677a0540364
-run_with_commit fb28014af0c3cc095917087da25dbb9147486500
-run_with_commit 2ce8c83f677fbd144c45d0b500a62c392b01c8fe
-run_with_commit 8c46061e2c178d2771ef5a1a54e6bac842c6ae62
-run_with_commit d4757afbe5f38cf16004cf2e7a14aa0ba70d9d34
-run_with_commit a14e88454690645d57e056f45829331df7eef611
-run_with_commit 75cac0fe6968dce6ff7068e58bc5ed51b7a09183
-run_with_commit 2e1a5cb80e7084d17ffe19f0f4c75d9232b14308
-run_with_commit c36b77fcdad3d54227cf0fd51693eb57035002c0
-run_with_commit 3805be62c1bb10b8bf4e645aac30d89efd8f79ab
-run_with_commit eb2c5930b2a5a9117928e327ccbfa45f310e1ec1
-run_with_commit c142dbf8763a9e200f210c0ee58bdae86a8ac50e
-run_with_commit add57fd2677d0dbc1ad589c5537cee64bbce4215
-run_with_commit 0eb55f9dddd055fbf63bba5f0f4536b2ed94bade
-run_with_commit 5aa0f89d65d351ce71ba21336b3cc2e82a8b6135
-run_with_commit b59fa077b3a088f3e6934c72bf5bb3d6f0a23f64
+run_with_commit 4d22c3ba01c67a809f7272e38f8ffa6e9e4f384c                                                                                          run_with_commit 6e1e09fd10e58857c72b6da475c17709b0ef13ff                                                                                          run_with_commit 5b03ff0a09d43d721067e39da10aa23edc6997cd                                                                                          run_with_commit 82268bf300e2c794010ed381844767ebc5794f62                                                                                          run_with_commit a7406516d1b0c35973461833fa665d4296a75038                                                                                          run_with_commit d6ca93b3536f157577076480a3948c1d42ad984c
+run_with_commit 9c02b88791de00eb8f5c06483629d20f125bb38b
+run_with_commit efe1859ad94a26f04d5f9a57b890d02d984c3707
+run_with_commit 1cc321deed43ed246f0de6b393184507d0307b45
+run_with_commit 1aa80471b80050fa59e0a781b51fde11cd338128
+run_with_commit ec52d911bd16ccba498b93685c646e489b8172a9
+run_with_commit 4f94aed8a3d9263e232744b4ef8f343b58a81a4a
+run_with_commit c543034531d70e4bb21be76a73acf59056921500
+run_with_commit dfa9c9e227b6989d342c61f8e0229c53c50c09a0
+run_with_commit c3b2c2e353179bd591b6bbafa303d9affca9babb
+run_with_commit 93b5c9d723dd4003ebd7439074a9e9722d58d33c
+run_with_commit edcf659e423d24a5a15939e55310d4f84d7c0270
+run_with_commit 4515edfe1596db609b1a4c4601026ce2befc089b
+run_with_commit a5aeb37493831871aa9b48c06f4336784b7347cf
+run_with_commit 70f3f23e3ad8f07c08609f4a7a0b9ca751264fe1
+run_with_commit 9034762a7dd428ae0fcdefe868fda87ea55e75cb
+run_with_commit 2526f97464a24244d07b312931bdb1c54d8295c2
+run_with_commit 9f890a921805a06058819a02f4a3ebc006514f3b
+run_with_commit bfbb3e0579d239713b70a47034938b69b751a204
+run_with_commit e280f93e31c2c662cf746d2bf2dc91035587b0b4
+run_with_commit 6301d62e0b205c53a445ffb87ce7be1ac52d9cb9
+run_with_commit d083b443b4046942499b50e2951d644a215e2213
+run_with_commit cbe5ab11093355e5e8d0d09878d10de094cdf22f
+run_with_commit 19df7e7e84c1328a0661c267835e1c922a6d90f7
+run_with_commit d8df8aa8421125ecb554d7f13e649c1e09d6c701
+run_with_commit 6cf189512c4aed7742a7b77aed480e1ed89a5e9b
+run_with_commit 7b3881f68cb01dd0b98fb3ff5ef9618ac286a5ef
+run_with_commit 493c90081008b193fb865b96671067f801c3cdcb
+run_with_commit 46539eee0363e25ce5eb408c85cefd808cd6f878
+run_with_commit f8db764f6c3383141fd0d8b27898116162d19d94
+run_with_commit 492660768f193f9dde5c697b0f1811dce060f0c3
+run_with_commit 08425d8c01204810c62be259dbc5647b3fbf9a0e
+run_with_commit 7516156a354ab81f6037792a28198b81499d88ed
+run_with_commit c79d116a7d3375a5108d64fab4f18cfbaa6ca711
+run_with_commit 916eee182c9dc8d335501f6672842c6d29f0af58
+run_with_commit 921079c5c26e0cb7a02e2fcd9ba144b10b0ea6da
+run_with_commit 958d6272883f5b053545e8bdbff8af5bb0259dcc
+run_with_commit 3051e36e059600a5daf9ce091af6ab6f2722bf14
+run_with_commit bdc656da708e7cf2f354b68517a5dcc3eb081587
+run_with_commit fc93d1ae6bd00b10be5d1a092b2c80f568634b96
+run_with_commit d7a1152ee9948e21f337264460c5f6d12e4ed67f
+run_with_commit 50cb48643df2e82d4000dc9dd4a9ba0ec2435c6a
+run_with_commit 832c72a2d63034049d3303679b6a2f3c7d6e6956
+run_with_commit d2919353778071f7f06ca3b0f592d272fb176c28
+run_with_commit f88f9e13319ef278933f8f8523fc1601cd330b53
