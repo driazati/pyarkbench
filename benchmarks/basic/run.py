@@ -1,10 +1,8 @@
-from typing import Any, Dict
-
 from torchscript_benchmarks import Benchmark, Timer, setup_args
 
 
 class Basic(Benchmark):
-    def benchmark(self) -> Dict[str, Any]:
+    def benchmark(self):
         with Timer() as m1:
             pass
 
