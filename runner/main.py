@@ -1,6 +1,6 @@
-# 1. Checkout Pytorch nightly
+# 1. Checkout Pytorch
 # 2. Run the benchmark scripts (each should output to its own file)
-# 3. Push result files (all files ending in ".csv") to the site repo
+# 3. Push result files (all files ending in ".json") to the site repo
 import argparse
 import os
 
