@@ -17,5 +17,6 @@ class Basic(Benchmark):
         }
 
 if __name__ == '__main__':
+    # Setup command line args for this script
     setup_args()
     Basic().run()
