@@ -1,5 +1,21 @@
 This library is intended to make it easy to write small benchmarks and view the results.
 
+- [Usage](#usage)
+- [API](#api)
+- [Benchmark](#benchmark)
+    + [benchmark](#benchmark)
+    + [run](#run)
+    + [print_results](#print-results)
+    + [print_stats](#print-stats)
+    + [save_results](#save-results)
+  * [cleanup](#cleanup)
+  * [default_args](#default-args)
+    + [bench](#bench)
+    + [stats](#stats)
+    + [save](#save)
+  * [Timer](#timer)
+  * [Commit](#commit)
+
 # Usage
 
 See [examples/basic.py](examples/basic.py) for a full working example.
