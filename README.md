@@ -2,7 +2,7 @@ This library is intended to make it easy to write small benchmarks and view the 
 
 - [Usage](#usage)
 - [API](#api)
-- [Benchmark](#benchmark)
+  * [Benchmark](#benchmark)
     + [benchmark](#benchmark)
     + [run](#run)
     + [print_results](#print-results)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
 # API
 
-# Benchmark
+## Benchmark
 ```python
 Benchmark(self, num_runs: int = 10, warmup_runs: int = 1, quiet: bool = False, commit: pybench.benchmarking_utils.Commit = None)
 ```
