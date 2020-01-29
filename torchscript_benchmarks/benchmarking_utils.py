@@ -14,34 +14,69 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 logging.root.setLevel(logging.DEBUG)
 
-args = None
+
+DEFAULT_ARGS = {
+    'num_runs': 10,
+    'warmup_runs': 1,
+}
 
 
-def setup_args():
-    global args
-    parser = argparse.ArgumentParser(description="Run TorchScript benchmarks")
-    parser.add_argument("--runs",
-                        help="Number of times to run benchmarks",
-                        default=10)
+class default_args():
+    parser = None
 
-    parser.add_argument("--out",
-                        help="Directory to write JSON output (filename is `YourClassName.json`)",
-                        required=False)
-    parser.add_argument("--stats",
-                        nargs='*',
-                        metavar='method',
-                        help="Call functions from Python's `statistics` package instead of showing raw numbers (if no methods are provided, mean, median, and variance are computed)")
+    def init():
+        default_args.parser = argparse.ArgumentParser(description="Run benchmarks")
+        default_args.parser.add_argument("--num_runs",
+                            help="Number of times to run benchmarks",
+                            default=DEFAULT_ARGS['num_runs'],
+                            type=int)
+        default_args.parser.add_argument("--warmup_runs",
+                            help="Number of times to warm up benchmarks (run without recording times)",
+                            default=DEFAULT_ARGS['warmup_runs'],
+                            type=int)
 
-    parser.add_argument("--time",
-                        help="Time of current commit (used by runner script)",
-                        required=False)
-    parser.add_argument("--pr", help="PR of current commit (used by runner script)", required=False)
-    parser.add_argument("--hash",
-                        help="Hash of current commit (used by runner script)",
-                        required=False)
+        default_args.parser.add_argument("--out",
+                            help="Directory to write JSON output (filename is `YourClassName.json`)",
+                            required=False)
+        default_args.parser.add_argument("--stats",
+                            nargs='*',
+                            metavar='method',
+                            help="Call functions from Python's `statistics` package instead of showing raw numbers (if no methods are provided, mean, median, and variance are computed)")
 
-    args = parser.parse_args()
-    return args
+        default_args.parser.add_argument("--time",
+                            help="Time of current commit (used by runner script)",
+                            required=False)
+        default_args.parser.add_argument("--pr", help="PR of current commit (used by runner script)", required=False)
+        default_args.parser.add_argument("--hash",
+                            help="Hash of current commit (used by runner script)",
+                            required=False)
+        default_args.parser.add_argument("--quiet",
+                            help="Disable logging",
+                            required=False,
+                            action='store_true')
+        return default_args.parser.parse_args()
+
+    @staticmethod
+    def bench():
+        args = default_args.init()
+        commit = None
+        if args.time and args.pr and args.hash:
+            commit = Commit(args.time, args.pr, args.hash)
+        return [args.num_runs, args.warmup_runs, args.quiet, commit]
+    
+    @staticmethod
+    def stats():
+        args = default_args.init()
+        if args.stats is None or len(args.stats) == 0:
+            return ('mean', 'median', 'variance')
+        return args.stats
+
+    @staticmethod
+    def save():
+        args = default_args.init()
+        if args.out is None:
+            return os.getcwd()
+        return args.out
 
 
 class Timer(object):
@@ -106,6 +141,8 @@ def find_spot(data, commit):
 
 class Commit(object):
     def __init__(self, time, pr, hash):
+        if isinstance(time, str):
+            time = datetime.datetime.strptime(args.time, "%Y-%m-%dT%H:%M:%S%z")
         self.time = time
         self.pr = pr
         self.hash = hash
@@ -116,54 +153,26 @@ class Commit(object):
 
 
 class Benchmark(object):
-    def __init__(self):
+    def __init__(self, num_runs: int=DEFAULT_ARGS['num_runs'], warmup_runs: int=DEFAULT_ARGS['warmup_runs'], quiet: bool=False, commit: Commit=None):
         # Parse arguments
-        self.out_dir = args.out
-        if args.stats is None:
-            self.stats = None
-        else:
-            if len(args.stats) == 0:
-                self.stats = ['mean', 'median', 'variance']
-            else:
-                self.stats = args.stats
-            for stat in self.stats:
-                assert getattr(statistics, stat) is not None
-        if self.out_dir is None:
-            if self.stats is not None:
-                logging.warning("'--out' is not set, printing statistics to stdout")
-            else:
-                logging.warning("'--out' is not set, printing raw results to stdout")
-        msg = "Cannot compute stats and save JSON to file, don't combine --out and --stats args"
-        assert not (self.out_dir is not None and self.stats is not None), msg
-        self.num_runs = int(args.runs)
-        self.warmup_runs = 1
+        if quiet:
+            logging.getLogger().disabled = True
+        assert isinstance(num_runs, int), "Expected num_runs to be an int but got {}".format(type(num_runs))
+        assert isinstance(warmup_runs, int), "Expected warmup_runs to be an int but got {}".format(type(warmup_runs))
 
-        # If provided on the command line, make a commit object for the results
-        if not args.time or not args.hash or not args.pr:
-            logging.info(
-                "--time, --hash, or --pr not provided, commit is unknown")
-            self.commit = None
-        else:
-            if args.time:
-                time = datetime.datetime.strptime(args.time, "%Y-%m-%dT%H:%M:%S%z")
-            else:
-                time = ''
-            commit = Commit(time, args.pr, args.hash)
-            logging.info("Commit {}".format(commit))
-            self.commit = commit
+        self.num_runs = num_runs
+        self.warmup_runs = warmup_runs
+        self.commit = commit
 
         # Get the output name for this test
         self.name = type(self).__name__.lower()
 
-        if self.out_dir:
-            json_name = "{}.json".format(self.name)
-            self.output_filename = os.path.join(self.out_dir, json_name)
-        else:
-            self.output_filename = None
-
-    def run(self) -> Dict[str, Any]:
+    def run(self, print_outputs=True) -> Dict[str, Any]:
         if not hasattr(self, 'num_runs'):
             raise RuntimeError("Call Benchmark.__init__() before run()")
+
+        if not print_outputs and self.stats is not None:
+            raise RuntimeError("Cannot output stats and return outputs, only raw outputs can be returned")
 
         logging.info("Benchmarking '{name}', best of {runs} runs (with {warmup_runs} warmup runs)".format(
             name=self.name, runs=self.num_runs, warmup_runs=self.warmup_runs))
@@ -189,37 +198,42 @@ class Benchmark(object):
         # Add the time the test was run to the results
         results["benchmark_run_at"] = str(now)
 
-        if self.out_dir is None:
-            # TODO: calculate statistics
-            if self.stats is not None:
-                stats = {}
-                for name in results:
-                    entry = results[name]
-                    if isinstance(entry, list):
-                        stats[name] = {}
-                        for stat in self.stats:
-                            stats[name][stat] = getattr(statistics, stat)(entry)
-                    else:
-                        stats[name] = results[name]
-                print(json.dumps(stats, indent=2))
+        return results
+        
+    def print_results(self, results):
+        print(json.dumps(results, indent=2))
+        
+    def print_stats(self, results, stats=('mean', 'median', 'variance')):
+        stat_values = {}
+        for name in results:
+            entry = results[name]
+            if isinstance(entry, list):
+                stat_values[name] = {}
+                for stat in stats:
+                    stat_values[name][stat] = getattr(statistics, stat)(entry)
             else:
-                print(json.dumps(results, indent=2))
-        else:
-            self.save_results(results)
+                stat_values[name] = results[name]
+        print(json.dumps(stat_values, indent=2))
 
-    def save_results(self, results):
+    def save_results(self, results, out_dir, filename=None):
         """
         Save the results gathered from benchmarking and metadata about the commit
         to a JSON file named after the type of `self`.
         """
+        json_name = "{}.json".format(self.name)
+        if filename is None:
+            output_filename = os.path.join(out_dir, json_name)
+        else:
+            output_filename = filename
+
         logging.info("Saving results for {name} to {filename}".format(
-            name=self.name, filename=self.output_filename))
+            name=self.name, filename=output_filename))
 
         data = []
         spot = 0
         make_new_entry = True
-        if os.path.exists(self.output_filename):
-            with open(self.output_filename, 'r') as in_file:
+        if os.path.exists(output_filename):
+            with open(output_filename, 'r') as in_file:
                 try:
                     data = json.load(in_file)
                     spot, make_new_entry = find_spot(data, self.commit)
@@ -231,6 +245,7 @@ class Benchmark(object):
         if make_new_entry:
             entry = {}
             if self.commit:
+                print(self.commit)
                 entry["commit"] = {
                     "pr": self.commit.pr,
                     "hash": self.commit.hash,
@@ -242,7 +257,7 @@ class Benchmark(object):
         else:
             data[spot]["runs"].append(results)
 
-        with open(self.output_filename, 'w') as out:
+        with open(output_filename, 'w') as out:
             json.dump(data, out, indent=2)
 
     def benchmark(self):

@@ -1,4 +1,4 @@
-from torchscript_benchmarks import Benchmark, Timer, setup_args
+from torchscript_benchmarks import Benchmark, Timer, default_args
 
 
 class Basic(Benchmark):
@@ -16,5 +16,8 @@ class Basic(Benchmark):
 
 if __name__ == '__main__':
     # Setup command line args for this script
-    setup_args()
-    Basic().run()
+    bench = Basic(*default_args.bench())
+    results = bench.run()
+    bench.print_results(results)
+    # bench.print_stats(results, stats=default_args.stats())
+    # bench.save_results(results, out_dir=default_args.save())

@@ -48,7 +48,6 @@ def run_shell_command(command,
     kwargs = {
         "stdout": PIPE,
         "stderr": PIPE,
-        # "encoding": encoding,
         "shell": True
     }
 
