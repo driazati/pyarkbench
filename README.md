@@ -162,6 +162,12 @@ Wrapper around a git commit
 
 # Developer Notes
 
+To build this package locally, check it out and run
+
+```bash
+python setup.py develop
+```
+
 To rebuild these docs, run
 
 ```bash
