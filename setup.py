@@ -1,12 +1,12 @@
 from setuptools import setup
 
 setup(
-    name='pybench',
+    name='pyarkbench',
     version='1.0',
     description='Benchmarking utilities',
-    url='http://github.com/driazati/pybench',
+    url='http://github.com/driazati/pyarkbench',
     author='driazati',
     license='GPLv3',
-    packages=['pybench'],
+    packages=['pyarkbench'],
     zip_safe=False,
 )

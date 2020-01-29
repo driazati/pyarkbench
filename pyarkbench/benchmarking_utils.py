@@ -214,9 +214,6 @@ class Benchmark(object):
         if not hasattr(self, 'num_runs'):
             raise RuntimeError("Call Benchmark.__init__() before run()")
 
-        if not print_outputs and self.stats is not None:
-            raise RuntimeError("Cannot output stats and return outputs, only raw outputs can be returned")
-
         logging.info("Benchmarking '{name}', best of {runs} runs (with {warmup_runs} warmup runs)".format(
             name=self.name, runs=self.num_runs, warmup_runs=self.warmup_runs))
 

@@ -22,7 +22,7 @@ This library is intended to make it easy to write small benchmarks and view the 
 See [examples/basic.py](examples/basic.py) for a full working example.
 
 ```python
-from pybench import Benchmark, Timer, default_args
+from pyarkbench import Benchmark, Timer, default_args
 
 class Basic(Benchmark):
     def benchmark(self):

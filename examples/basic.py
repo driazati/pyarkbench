@@ -1,4 +1,4 @@
-from pybench import Benchmark, Timer, default_args
+from pyarkbench import Benchmark, Timer, default_args
 
 
 class Basic(Benchmark):
