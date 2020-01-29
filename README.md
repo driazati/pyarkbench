@@ -41,8 +41,48 @@ if __name__ == '__main__':
 
 # API
 
-## `Benchmark`
+# Benchmark
+```python
+Benchmark(self, num_runs: int = 10, warmup_runs: int = 1, quiet: bool = False, commit: pybench.benchmarking_utils.Commit = None)
+```
 
-## `Timer`
+Benchmarks should extend this class and implement the `benchmark` method.
 
-## `default_args`
+## benchmark
+```python
+Benchmark.benchmark(self) -> Dict[str, float]
+```
+
+This method must be implemented in your subclass and returns a dictionary
+of metric name to the time captured for that metric.
+
+## run
+```python
+Benchmark.run(self) -> Dict[str, Any]
+```
+
+This is the entry point into your benchmark. It will first run `benchmark()`
+`self.warmup_runs` times without using the resulting timings, then it will
+run `benchmark()` `self.num_runs` times and return the resulting timings.
+
+## print_results
+```python
+Benchmark.print_results(self, results)
+```
+
+Pretty print the raw results by JSON dumping them.
+
+## print_stats
+```python
+Benchmark.print_stats(self, results, stats=('mean', 'median', 'variance'))
+```
+
+Collects and prints statistics over the results.
+
+## save_results
+```python
+Benchmark.save_results(self, results, out_dir, filename=None)
+```
+
+Save the results gathered from benchmarking and metadata about the commit
+to a JSON file named after the type of `self`.

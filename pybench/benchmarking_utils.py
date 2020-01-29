@@ -80,6 +80,13 @@ class default_args():
 
 
 class Timer(object):
+    """
+    Context manager object that will time the execution of the statements it
+    manages.
+        `self.start` - start time
+        `self.end` - end time
+        `self.ms_duration` - end - start / 1000 / 1000
+    """
     def __enter__(self):
         self.start = time.perf_counter_ns()
         return self
@@ -111,6 +118,10 @@ def clear_cache():
 
 
 def cleanup():
+    """
+    Churn through a bunch of data, run the garbage collector, and sleep for a
+    second to "reset" the Python interpreter.
+    """
     clear_cache()
     gc.collect()
     time.sleep(1)
@@ -140,6 +151,9 @@ def find_spot(data, commit):
 
 
 class Commit(object):
+    """
+    Wrapper around a git commit
+    """
     def __init__(self, time, pr, hash):
         if isinstance(time, str):
             time = datetime.datetime.strptime(args.time, "%Y-%m-%dT%H:%M:%S%z")
@@ -153,6 +167,9 @@ class Commit(object):
 
 
 class Benchmark(object):
+    """
+    Benchmarks should extend this class and implement the `benchmark` method.
+    """
     def __init__(self, num_runs: int=DEFAULT_ARGS['num_runs'], warmup_runs: int=DEFAULT_ARGS['warmup_runs'], quiet: bool=False, commit: Commit=None):
         # Parse arguments
         if quiet:
@@ -167,7 +184,19 @@ class Benchmark(object):
         # Get the output name for this test
         self.name = type(self).__name__.lower()
 
-    def run(self, print_outputs=True) -> Dict[str, Any]:
+    def benchmark(self) -> Dict[str, float]:
+        """
+        This method must be implemented in your subclass and returns a dictionary
+        of metric name to the time captured for that metric.
+        """
+        raise NotImplementedError()
+
+    def run(self) -> Dict[str, Any]:
+        """
+        This is the entry point into your benchmark. It will first run `benchmark()`
+        `self.warmup_runs` times without using the resulting timings, then it will
+        run `benchmark()` `self.num_runs` times and return the resulting timings.
+        """
         if not hasattr(self, 'num_runs'):
             raise RuntimeError("Call Benchmark.__init__() before run()")
 
@@ -201,9 +230,15 @@ class Benchmark(object):
         return results
         
     def print_results(self, results):
+        """
+        Pretty print the raw results by JSON dumping them.
+        """
         print(json.dumps(results, indent=2))
         
     def print_stats(self, results, stats=('mean', 'median', 'variance')):
+        """
+        Collects and prints statistics over the results.
+        """
         stat_values = {}
         for name in results:
             entry = results[name]
@@ -259,6 +294,3 @@ class Benchmark(object):
 
         with open(output_filename, 'w') as out:
             json.dump(data, out, indent=2)
-
-    def benchmark(self):
-        raise NotImplementedError()
