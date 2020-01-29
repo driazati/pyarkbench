@@ -1,15 +1,12 @@
 from setuptools import setup
 
 setup(
-    name='torchscript_benchmarks',
+    name='pybench',
     version='1.0',
-    description='Utilities for torchscript benchmarks',
-    url='http://github.com/driazati/torchscript_benchmarks',
+    description='Benchmarking utilities',
+    url='http://github.com/driazati/pybench',
     author='driazati',
     license='GPLv3',
-    packages=['torchscript_benchmarks'],
+    packages=['pybench'],
     zip_safe=False,
-
-    # PyTorch is required
-    install_requires=['torch'],
 )
