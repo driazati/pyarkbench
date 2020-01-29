@@ -22,6 +22,11 @@ DEFAULT_ARGS = {
 
 
 class default_args():
+    """
+    Adds a bunch of default command line arguments to make orchestrating
+    benchmark runs more convenient. To see all the options, call
+    `default_args.init()` and run the script with the `--help` option.
+    """
     parser = None
 
     def init():
@@ -58,6 +63,9 @@ class default_args():
 
     @staticmethod
     def bench():
+        """
+        Default arguments to be passed to a `Benchmark` object
+        """
         args = default_args.init()
         commit = None
         if args.time and args.pr and args.hash:
@@ -66,6 +74,9 @@ class default_args():
     
     @staticmethod
     def stats():
+        """
+        Default arguments to be passed to the `Benchmark.print_stats` method
+        """
         args = default_args.init()
         if args.stats is None or len(args.stats) == 0:
             return ('mean', 'median', 'variance')
@@ -73,6 +84,9 @@ class default_args():
 
     @staticmethod
     def save():
+        """
+        Default arguments to be passed to the `Benchmark.save_results` method
+        """
         args = default_args.init()
         if args.out is None:
             return os.getcwd()
